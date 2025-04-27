@@ -17,12 +17,21 @@ class TurtlesimEnvSingle(TurtlesimEnvBase):
         pose=self.tapi.getPose(tname)
         _,_,_,fd,_,_ = self.get_road(tname)             # odl. do celu (mógł ulec zmianie)
         # action: [prędkość,skręt]
-        # TODO STUDENCI przejechać 1/2 okresu, skręcić, przejechać pozostałą 1/2
+        # STUDENCI przejechać 1/2 okresu, skręcić, przejechać pozostałą 1/2
         if realtime:                                    # jazda+skręt+jazda+skręt
             twist = Twist()
-            # ...
-            self.tapi.setVel(tname,twist)
-            # ...
+            twist.linear.x = action[0]
+            twist.angular.z = 0
+            self.tapi.setVel(tname, twist)
+
+            twist.angular.z = action[1]/2
+            self.tapi.setVel(tname, twist)
+
+            twist.angular.z = 0
+            self.tapi.setVel(tname, twist)
+
+            twist.angular.z = action[1]/2
+            self.tapi.setVel(tname, twist)
         else:                                           # skok+obrót
             # obliczenie i wykonanie przesunięcia
             vx = np.cos(pose.theta+action[1])*action[0]*self.SEC_PER_STEP
@@ -71,4 +80,4 @@ if __name__ == "__main__":
     agents=env.reset()
     tname=list(agents.keys())[0]
     for i in range(10):                                     # ruch losowy do przodu
-        env.step({tname:(random.uniform(.2,1),random.uniform(-.3,.3))},realtime=False)
+        env.step({tname:(random.uniform(.2,1),random.uniform(-.3,.3))},realtime=True)

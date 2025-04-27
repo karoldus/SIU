@@ -65,7 +65,7 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
                     if agent_cnt is not None and cnt>agent_cnt:                 # ogranicz liczbę tworzonych żółwi
                         return
                     tname=f'{chr(65+int(route))}/{chr(65+int(sec_id))}/{chr(65+int(seq))}'  # identyfikator agenta: trasa, segment pocz., nr kolejny
-                    print(f'Agent {tname}')
+                    # print(f'Agent {tname}')
                     ta=TurtleAgent()                        # utwórz agenta lokalnie i zainicjuj tożsamość
                     ta.route=route
                     ta.sec_id=sec_id
@@ -91,7 +91,8 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
             elif sections[tidx]=='random':                  # żółw pozycjonowany w losowym segmencie jego trasy
                 # TODO STUDENCI
                 # losowanie obszaru proporcjonalnie do liczby planowanych żółwi w obszarze
-                sec_id=...
+                agent.route=str(np.random.randint(1,len(self.routes)+1)) # losowa trasa
+                sec_id=agent.sec_id
             else:                                           # żółw pozycjonowany we wskazanym segmencie (liczone od 0)
                 sec_id=sections[tidx]
             section=self.routes[agent.route][sec_id]        # przypisanie sekcji, w której się odrodzi
@@ -131,7 +132,7 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
         sys.exit(0)
     def get_road(self,tname):
         agent = self.agents[tname]
-        print(tname,agent.color_api)
+        # print(tname,agent.color_api)
         rospy.sleep(self.WAIT_AFTER_MOVE)                       # bez tego color_api.check() nie wyrabia
         color = agent.color_api.check()                         # kolor planszy pod żółwiem
         fx = .02*(color.r-200)                                  # składowa x zalecanej prędkości <-1;1>

@@ -114,6 +114,9 @@ class DqnSingle():
                     epsilon=max(self.EPS_MIN,epsilon)                               # podtrzymaj losowość ruchów
             episode_rewards[episode]=episode_rwrd
             print(f' {np.nanmean(episode_rewards[episode-19:episode+1])/20:.2f}')   # śr. krocząca nagrody za 20 kroków
+            if save_model and episode%self.SAVE_MODEL_EVERY==0:                     # TODO STUDENCI zapis modelu
+                self.model.save(f"modelLast/{self.xid()}episode{episode}_model.tf")
+                
     # przygotowuje próbkę uczącą i wywołuje douczanie modelu
     def do_train(self, episode=None):
         minibatch=random.sample(self.replay_memory,self.MINIBATCH_SIZE)             # losowy podzbiór kroków z historii
