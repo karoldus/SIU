@@ -89,10 +89,8 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
             if sections[tidx]=='default':                   # żółw pozycjonowany wg csv
                 sec_id=agent.sec_id
             elif sections[tidx]=='random':                  # żółw pozycjonowany w losowym segmencie jego trasy
-                # TODO STUDENCI
                 # losowanie obszaru proporcjonalnie do liczby planowanych żółwi w obszarze
-                agent.route=str(np.random.randint(1,len(self.routes)+1)) # losowa trasa
-                sec_id=agent.sec_id
+                sec_id = np.random.choice(len(self.routes[agent.route]))
             else:                                           # żółw pozycjonowany we wskazanym segmencie (liczone od 0)
                 sec_id=sections[tidx]
             section=self.routes[agent.route][sec_id]        # przypisanie sekcji, w której się odrodzi
