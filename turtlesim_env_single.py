@@ -10,6 +10,7 @@ from turtlesim_env_base import TurtlesimEnvBase, TurtleAgent
 class TurtlesimEnvSingle(TurtlesimEnvBase):
     def __init__(self):
         super().__init__()
+        self.out_of_track = False  # flaga wykrycia wyjazdu poza trasę
 
     def step(self, actions, realtime=False):
         self.step_sum += 1
@@ -64,6 +65,7 @@ class TurtlesimEnvSingle(TurtlesimEnvBase):
         if abs(fx1) + abs(fy1) < 0.01 and fa1 == 1:  # wylądowaliśmy poza trasą
             r4 = self.OUT_OF_TRACK_FINE
             done = True
+            self.out_of_track = True
         reward = fa1 * (r1 + r2) + r3 + r4
         # sp=speed, fl=flow, cl=closing, tr=track
         # print(f'RWD: {reward:.2f} = {fa1:.2f}*(sp{r1:.2f} fl{r2:.2f}) cl{r3:.2f} tr{r4:.2f}')
