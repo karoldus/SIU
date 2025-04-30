@@ -81,15 +81,45 @@ class DqnSingle:
         self.model.add(Dense(self.CTL_DIM, activation="linear"))  # wyjście Q dla każdej z CTL_DIM decyzji
         self.model.compile(loss="mse", optimizer=keras.optimizers.Adam(learning_rate=0.001), metrics=["accuracy"])
 
+    def save_checkpoint(self, episode, epsilon, episode_rewards):
+        checkpoint_path = f"modelLast/{self.xid()}_checkpoint.pkl"
+        checkpoint = {
+            "episode": episode,
+            "epsilon": epsilon,
+            "episode_rewards": episode_rewards,
+            "replay_memory": list(self.replay_memory),
+        }
+        with open(checkpoint_path, "wb") as f:
+            pickle.dump(checkpoint, f)
+        self.model.save(f"modelLast/{self.xid()}_last_model.keras")
+
+    def load_checkpoint(self):
+        import os
+
+        checkpoint_path = f"modelLast/{self.xid()}_checkpoint.pkl"
+        model_path = f"modelLast/{self.xid()}_last_model.keras"
+        if not os.path.exists(checkpoint_path) or not os.path.exists(model_path):
+            return None
+        with open(checkpoint_path, "rb") as f:
+            checkpoint = pickle.load(f)
+        self.model = keras.models.load_model(model_path)
+        self.replay_memory = deque(checkpoint["replay_memory"], maxlen=self.REPLAY_MEM_SIZE_MAX)
+        return checkpoint["episode"], checkpoint["epsilon"], checkpoint["episode_rewards"]
+
     # uczenie od podstaw: generuj kroki, gromadź pomiary, ucz na próbce losowej, okresowo aktualizuj model pomocniczy
-    def train_main(self, tname: str, save_model=True):  # TODO STUDENCI okresowy zapis modelu
+    def train_main(self, tname: str, save_model=True, resume_state=None):
         self.target_model = keras.models.clone_model(self.model)  # model pomocniczy (wolnozmienny)
-        self.replay_memory = deque(maxlen=self.REPLAY_MEM_SIZE_MAX)  # historia kroków
         episode_rewards = np.zeros(self.EPISODES_MAX) * np.nan  # historia nagród w epizodach
         epsilon = self.EPS_INIT
         step_cnt = 0
         train_cnt = 0
-        for episode in range(self.EPISODES_MAX):  # ucz w epizodach treningowych
+        start_episode = 0
+        if resume_state is not None:
+            start_episode, epsilon, episode_rewards = resume_state
+            print(f"Resuming from episode {start_episode}")
+        else:
+            self.replay_memory = deque(maxlen=self.REPLAY_MEM_SIZE_MAX)  # historia kroków
+        for episode in range(start_episode, self.EPISODES_MAX):  # ucz w epizodach treningowych
             print(f"{len(self.replay_memory)} E{episode} ", end="")
             current_state = self.env.reset(tnames=[tname], sections=["random"])[tname].map
             last_state = [i.copy() for i in current_state]  # zaczyna od postoju: poprz. stan taki jak obecny
@@ -123,7 +153,8 @@ class DqnSingle:
                     epsilon = max(self.EPS_MIN, epsilon)  # podtrzymaj losowość ruchów
             episode_rewards[episode] = episode_rwrd
             print(f" {np.nanmean(episode_rewards[episode-19:episode+1])/20:.2f}")  # śr. krocząca nagrody za 20 kroków
-            if save_model and episode % self.SAVE_MODEL_EVERY == 0:  # TODO STUDENCI zapis modelu
+            if save_model and episode % self.SAVE_MODEL_EVERY == 0:
+                self.save_checkpoint(episode + 1, epsilon, episode_rewards)
                 self.model.save(f"modelLast/{self.xid()}episode{episode}_model.keras")
 
     # przygotowuje próbkę uczącą i wywołuje douczanie modelu
@@ -161,6 +192,6 @@ if __name__ == "__main__":
     agents = env.reset()  # ustawienie agenta
     tname = list(agents.keys())[0]  # 'lista agentów' do wytrenowania
     dqns = DqnSingle(env)  # utworzenie klasy uczącej
-    dqns.make_model()  # skonstruowanie sieci neuronowej
-    # dqns.model=load_model('test.h5')                          # albo załadowanie zapisanej wcześniej
-    dqns.train_main(tname, save_model=True)  # wywołanie uczenia
+    dqns.make_model()
+    resume_state = dqns.load_checkpoint()
+    dqns.train_main(tname, save_model=True, resume_state=resume_state)  # wywołanie uczenia
