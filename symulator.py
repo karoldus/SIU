@@ -38,9 +38,9 @@ class AppSingle:
         env.setup("routes.csv", agent_cnt=1)
         agents = env.reset()
         tname = list(agents.keys())[0]
-        if self.set_pen:
-            set_pen_req = turtlesim.srv.SetPenRequest(r=200, g=0, b=0, width=3, off=0)
-            env.tapi.setPen(tname,set_pen_req)
+        # set pen
+        # set_pen_req = turtlesim.srv.SetPenRequest(r=255, g=0, b=255, width=5, off=0)
+        # env.tapi.setPen(tname,set_pen_req)
         current_state = deepcopy(agents[tname].map)
         while not env.out_of_track:
             last_state = deepcopy(current_state)
@@ -50,6 +50,6 @@ class AppSingle:
 
 if __name__ == "__main__":
     
-    app = AppSingle("models/dqns-Gr5_Cr150_Sw0.5_Sv-15.0_Sf-4.0_Dr2.0_Oo-10_Cd1.5_Ms80_Pb6_D0.9_E0.99_e0.05_M20000_m400_B32_U5_P4000_T2episode20_model.keras")
+    app = AppSingle("models/E_dqns-Gr5_Cr150_Sw0.5_Sv-15.0_Sf-4.0_Dr2.0_Oo-10_Cd1.5_Ms80_Pb6_D0.9_E0.99_e0.05_M20000_m400_B32_U5_P4000_T2episode20_model.keras")
     app.app()
 

@@ -8,6 +8,7 @@ from keras.models import Sequential
 from keras.layers import Conv3D, Permute, Dense, Flatten
 from turtlesim_env_base import TurtlesimEnvBase
 import turtlesim_env_single
+from keras.models import load_model
 
 
 class DqnSingle:
@@ -20,14 +21,14 @@ class DqnSingle:
         self.EPS_DECAY = 0.99  # *E spadek ε
         self.EPS_MIN = 0.05  # *e ε minimalny
         self.REPLAY_MEM_SIZE_MAX = 20_000  # M rozmiar cache decyzji
-        self.REPLAY_MEM_SIZE_MIN = 4_000  # m zapełnienie warunkujące uczenie
+        self.REPLAY_MEM_SIZE_MIN = 400  # m zapełnienie warunkujące uczenie
         self.MINIBATCH_SIZE = 32  # B liczba decyzji w próbce uczącej
         self.TRAINING_BATCH_SIZE = self.MINIBATCH_SIZE // 4
-        self.UPDATE_TARGET_EVERY = 20  # U co ile treningów aktualizować model wolnozmienny
+        self.UPDATE_TARGET_EVERY = 5  # U co ile treningów aktualizować model wolnozmienny
         self.EPISODES_MAX = 4000  # *P liczba epizodów uczących
         self.CTL_DIM = 6  #   liczba możliwych akcji (tj. sterowań, decyzji)
-        self.TRAIN_EVERY = 4  # T co ile kroków uczenie modelu szybkozmiennego
-        self.SAVE_MODEL_EVERY = 250  # *  co ile epizodów zapisywać model # TODO STUDENCI
+        self.TRAIN_EVERY = 2  # T co ile kroków uczenie modelu szybkozmiennego
+        self.SAVE_MODEL_EVERY = 10  # *  co ile epizodów zapisywać model # TODO STUDENCI
         random.seed(seed)
         np.random.seed(seed)
         self.model = None
@@ -77,7 +78,7 @@ class DqnSingle:
         self.model.add(Permute((1, 2, 4, 3)))
         self.model.add(Conv3D(filters=2 * M, kernel_size=(2, 2, 2 * M), activation="relu"))
         self.model.add(Flatten())
-        self.model.add(Dense(32, activation="relu"))
+        self.model.add(Dense(64, activation="relu"))
         self.model.add(Dense(self.CTL_DIM, activation="linear"))  # wyjście Q dla każdej z CTL_DIM decyzji
         self.model.compile(loss="mse", optimizer=keras.optimizers.Adam(learning_rate=0.001), metrics=["accuracy"])
 
@@ -157,10 +158,10 @@ class DqnSingle:
 # przykładowe wywołanie uczenia
 if __name__ == "__main__":
     env = turtlesim_env_single.provide_env()  # utworzenie środowiska
-    env.setup("routes.csv", agent_cnt=1)  # połączenie z symulatorem
+    env.setup("routes2.csv", agent_cnt=1)  # połączenie z symulatorem
     agents = env.reset()  # ustawienie agenta
     tname = list(agents.keys())[0]  # 'lista agentów' do wytrenowania
     dqns = DqnSingle(env)  # utworzenie klasy uczącej
-    dqns.make_model()  # skonstruowanie sieci neuronowej
-    # dqns.model=load_model('test.h5')                          # albo załadowanie zapisanej wcześniej
+    # dqns.make_model()  # skonstruowanie sieci neuronowej
+    dqns.model=load_model('modelLast/dqns-Gr5_Cr150_Sw0.5_Sv-15.0_Sf-4.0_Dr2.0_Oo-10_Cd1.5_Ms20_Pb6_D0.9_E0.99_e0.05_M20000_m400_B32_U20_P4000_T4episode100_model.keras')                          # albo załadowanie zapisanej wcześniej
     dqns.train_main(tname, save_model=True)  # wywołanie uczenia
