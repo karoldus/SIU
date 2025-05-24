@@ -163,5 +163,7 @@ if __name__ == "__main__":
     tname = list(agents.keys())[0]  # 'lista agentów' do wytrenowania
     dqns = DqnSingle(env)  # utworzenie klasy uczącej
     # dqns.make_model()  # skonstruowanie sieci neuronowej
-    dqns.model=load_model('modelLast/dqns-Gr5_Cr150_Sw0.5_Sv-15.0_Sf-4.0_Dr2.0_Oo-10_Cd1.5_Ms20_Pb6_D0.9_E0.99_e0.05_M20000_m400_B32_U20_P4000_T4episode100_model.keras')                          # albo załadowanie zapisanej wcześniej
+    dqns.model = load_model(
+        "modelLast/dqns-Gr5_Cr150_Sw0.5_Sv-15.0_Sf-4.0_Dr2.0_Oo-10_Cd1.5_Ms20_Pb6_D0.9_E0.99_e0.05_M20000_m400_B32_U20_P4000_T4episode100_model.keras"
+    )  # albo załadowanie zapisanej wcześniej
     dqns.train_main(tname, save_model=True)  # wywołanie uczenia
