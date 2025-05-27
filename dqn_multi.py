@@ -67,8 +67,21 @@ class DqnMulti(DqnSingle):
         self.model.get_layer("conv3dX_2").trainable = False
         self.model.compile(loss="mse", optimizer=keras.optimizers.Adam(learning_rate=0.001), metrics=["accuracy"])
 
+    def load_checkpoint(self):
+        import os
+
+        checkpoint_path = f"models/{self.xid()}.pkl"
+        model_path = f"models/{self.xid()}.keras"
+        if not os.path.exists(checkpoint_path) or not os.path.exists(model_path):
+            return None
+        with open(checkpoint_path, "rb") as f:
+            checkpoint = pickle.load(f)
+        self.model = keras.models.load_model(model_path)
+        self.replay_memory = deque(checkpoint["replay_memory"], maxlen=self.REPLAY_MEM_SIZE_MAX)
+        return checkpoint["episode"], checkpoint["epsilon"], checkpoint["episode_rewards"]
+
     # model z osobną gałęzią dla logiki unikania kolizji
-    def train_main(self, save_model=True, save_state=True):
+    def train_main(self, save_model=True, save_state=True, model_name=None):
         self.target_model = keras.models.clone_model(self.model)  # model pomocniczy (wolnozmienny)
         self.replay_memory = deque(maxlen=self.REPLAY_MEM_SIZE_MAX)  # historia kroków
         episode_rewards = np.zeros(self.EPISODES_MAX) * np.nan  # historia nagród w epizodach
@@ -83,6 +96,10 @@ class DqnMulti(DqnSingle):
         episode_rewards[: len(self.env.agents)] = 0  # inicjalizacja nagród za epizody
         episode = len(self.env.agents) - 1  # indeks ost. epizodu
         to_restart = set()  # agenty do reaktywacji
+        if model_name is not None:  # wczytanie modelu z pliku
+            model_checkpoint = self.load_checkpoint()  # wczytanie modelu z pliku
+            if model_checkpoint is not None:
+                episode, epsilon, episode_rewards = model_checkpoint
         while episode < self.EPISODES_MAX:  # ucz w epizodach treningowych
             self.env.reset(to_restart, ["random" for i in to_restart])  # inicjalizacja wybranych
             for tname in to_restart:  # odczytanie sytuacji
@@ -94,7 +111,7 @@ class DqnMulti(DqnSingle):
                 episode_rewards[episode] = 0  # inicjalizacja nagród w tym epizodzie
                 agent_episode[tname] = episode  # przypisanie agenta do epizodu
                 if (episode + 1) % self.SAVE_MODEL_EVERY == 0 and save_model:
-                    self.model.save(f"models/{self.xid()}-{episode+1}.tf")  # zapisz bieżący model na dysku
+                    self.model.save(f"models/{self.xid()}.keras")  # zapisz bieżący model na dysku
                 if (episode + 1) % self.SAVE_MODEL_EVERY == 0 and save_state:  # zapisz bieżący stan uczenia
                     pickle.dump(
                         (episode, episode_rewards, epsilon, self.replay_memory), open(f"models/{self.xid()}.pkl", "wb")
@@ -146,8 +163,8 @@ if __name__ == "__main__":
     env.PI_BY = 3  # zmiana wybranych parametrów środowiska
     prefix = "X6-c20c20c20d64-M-lr001"  # bazowy z kolizjami
     env.DETECT_COLLISION = True
-    env.setup("routes.csv")  # połączenie z symulatorem
+    env.setup("routes_3.csv")  # połączenie z symulatorem
     agents = env.reset()  # ustawienie agenta
     dqnm = DqnMulti(env, id_prefix=prefix)  # utworzenie klasy uczącej
     dqnm.make_model()  # skonstruowanie sieci neuronowej
-    dqnm.train_main(save_model=True, save_state=True)  # wywołanie uczenia (wyniki zapisywane okresowo)
+    dqnm.train_main(save_model=True, save_state=True, model_name=True)  # wywołanie uczenia (wyniki zapisywane okresowo)
