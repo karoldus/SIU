@@ -75,10 +75,10 @@ class DqnMulti(DqnSingle):
         if not os.path.exists(checkpoint_path) or not os.path.exists(model_path):
             return None
         with open(checkpoint_path, "rb") as f:
-            checkpoint = pickle.load(f)
+            (episode, episode_rewards, epsilon, replay_memory) = pickle.load(f)
         self.model = keras.models.load_model(model_path)
-        self.replay_memory = deque(checkpoint["replay_memory"], maxlen=self.REPLAY_MEM_SIZE_MAX)
-        return checkpoint["episode"], checkpoint["epsilon"], checkpoint["episode_rewards"]
+        self.replay_memory = deque(replay_memory, maxlen=self.REPLAY_MEM_SIZE_MAX)
+        return episode, epsilon, episode_rewards
 
     # model z osobną gałęzią dla logiki unikania kolizji
     def train_main(self, save_model=True, save_state=True, model_name=None):
