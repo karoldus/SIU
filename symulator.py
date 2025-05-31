@@ -101,19 +101,21 @@ class AppMulti:
         # Store last and current state for each agent
         last_states = {tname: deepcopy(agents[tname].map) for tname in tnames}
         current_states = {tname: deepcopy(agents[tname].map) for tname in tnames}
-        done_cnt = 0
 
-        while done_cnt < self.agent_cnt:
-            controls = {}
-            for tname in env.agents:
-                controls[tname] = np.argmax(self.decision(last_states[tname], current_states[tname]))
-            actions = {tname: self.ctl2act(control) for tname, control in controls.items()}
-            scene = env.step(actions)
-            for tname, (new_state, reward, done) in scene.items():
-                last_states[tname] = current_states[tname]
-                current_states[tname] = new_state
-                if done:
-                    done_cnt += 1
+        while len(done_agents) < len(tnames):
+            actions = {}
+            for tname in tnames:
+                if tname not in done_agents:
+                    control = np.argmax(self.decision(last_states[tname], current_states[tname]))
+                    actions[tname] = self.ctl2act(control)
+            results = env.step(actions)
+            for tname, (new_state, _, done) in results.items():
+                print(results[tname][2])
+                if tname not in done_agents:
+                    last_states[tname] = current_states[tname]
+                    current_states[tname] = new_state
+                    if done:
+                        done_agents.add(tname)
 
 
 
