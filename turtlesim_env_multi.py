@@ -96,7 +96,7 @@ class TurtlesimEnvMulti(TurtlesimEnvBase):
             reward = fa1 * (r1 + r2) + r3 + r4 + r5
             # sp=speed, fl=flow, cl=closing, tr=track, xx=collision
             # print(f'RWD: {reward:.2f} = {fa1:.2f}*(sp{r1:.2f} fl{r2:.2f}) cl{r3:.2f} tr{r4:.2f} xx{r5:.2f}')
-            if self.agents[tname].step_sum > self.MAX_STEPS:
+            if self.MAX_STEPS != -1 and self.agents[tname].step_sum > self.MAX_STEPS:
                 done = True
             ret[tname] = (map, reward, done)
         return ret
