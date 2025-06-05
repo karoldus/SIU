@@ -73,7 +73,8 @@ class AppMulti:
 
     def app(self):
         env = TurtlesimEnvMulti()
-        env.setup("routes_3.csv", agent_cnt=self.agent_cnt)
+        env.DETECT_COLLISION = True
+        env.setup("routes_4.csv", agent_cnt=self.agent_cnt)
         agents = env.reset()
         env.MAX_STEPS = -1
         tnames = list(agents.keys())
@@ -121,6 +122,6 @@ class AppMulti:
 
 if __name__ == "__main__":
     app = AppMulti(
-        "models/X6-c20c20c20d64-M-lr001-Gr5_Cr150_Sw0.5_Sv-10.0_Sf-4.0_Dr2.0_Oo-10_Cd1.5_Ms80_Pb3_D0.9_E0.99_e0.05_M20000_m2000_B32_U20_P500_T2.keras"
+        "models/E3-A-M-lr001-Gr5_Cr150_Sw1.0_Sv-15.0_Sf-4.0_Dr3.0_Oo-10_Cd1.5_Ms30_Pb3_D0.88_E0.99_e0.05_M20000_m400_B32_U20_P1000_T2_e139.keras"
     )
     app.app()
